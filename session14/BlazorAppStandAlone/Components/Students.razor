@@ -75,17 +75,25 @@
 <div class="mt-5">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h2>Registered Students</h2>
-        <button class="btn btn-outline-primary" @onclick="LoadStudents" disabled="@isLoading">
-            @if (isLoading)
+        <div>
+            @if (students.Any())
             {
-                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                <text>Loading...</text>
+                <button class="btn btn-outline-secondary me-2" @onclick="@(() => EditStudent(students.First()))" disabled="@isLoading">
+                    Test Edit First
+                </button>
             }
-            else
-            {
-                <i class="bi bi-arrow-clockwise"></i> <text>Refresh</text>
-            }
-        </button>
+            <button class="btn btn-outline-primary" @onclick="LoadStudents" disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                    <text>Loading...</text>
+                }
+                else
+                {
+                    <i class="bi bi-arrow-clockwise"></i> <text>Refresh</text>
+                }
+            </button>
+        </div>
     </div>
 
     @if (isLoading && !students.Any())
@@ -129,7 +137,7 @@
                             <td>@item.Age</td>
                             <td>@item.Message</td>
                             <td>
-                                <button class="btn btn-sm btn-outline-primary" @onclick="() => EditStudent(item)" disabled="@isLoading">
+                                <button type="button" class="btn btn-sm btn-outline-primary" @onclick="@(() => EditStudent(item))" disabled="@isLoading">
                                     Edit
                                 </button>
                             </td>

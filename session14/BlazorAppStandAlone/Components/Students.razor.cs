@@ -103,8 +103,12 @@ public partial class Students
 
     private void EditStudent(Student toBeEditedStudent)
     {
+        Console.WriteLine($"EditStudent called for student: {toBeEditedStudent.Name} (ID: {toBeEditedStudent.Id})");
+
         student = JsonSerializer.Deserialize<Student>(JsonSerializer.Serialize(toBeEditedStudent))!;
         isEditing = true;
+
+        Console.WriteLine($"After edit - isEditing: {isEditing}, student.Name: {student.Name}");
         StateHasChanged();
     }
 
