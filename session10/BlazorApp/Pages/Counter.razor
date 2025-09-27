@@ -1,0 +1,35 @@
+﻿@page "/counter/{initialCount:int?}"
+
+<PageTitle>The Counter</PageTitle>
+
+@if (HeaderContent is not null)
+{
+    @HeaderContent
+}
+
+@if (ChildContent is null)
+{
+    <h1>Counter</h1>
+}
+else
+{
+    <h1>@ChildContent</h1>
+}
+
+<p role="status" style="color:red">  Current count: <b>@persistentCount</b> </p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click Here</button>
+
+<p>Step : @Step</p>
+
+@if (persistentCount >= 3)
+{
+    <p>you won!!!!!</p>
+}
+
+<ul>
+    @for (int i = 0; i < persistentCount; i++)
+    {
+        <li>You clicked @(i + 1) times</li>
+    }
+</ul>

@@ -1,0 +1,12 @@
+﻿<Router AppAssembly="@typeof(App).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>Not founddddddd</PageTitle>
+        <LayoutView Layout="@typeof(MainLayout)">
+            <p role="alert">Not found, kindly double check the route.</p>
+        </LayoutView>
+    </NotFound>
+</Router>
