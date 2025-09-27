@@ -1,78 +1,142 @@
 ﻿@page "/students"
+@inject IHttpClientFactory HttpClientFactory
 
 @namespace BlazorAppStandAlone.Components
 
-<h3>Students</h3>
+<h3>@(isEditing ? "Edit Student" : "Add New Student")</h3>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @errorMessage
+    </div>
+}
 
 <EditForm Model="@student" OnValidSubmit="@HandleValidSubmit">
     <FluentValidationValidator />
 
     <div class="mb-3">
         <label for="name" class="form-label">Name:</label>
-        <InputText class="form-control" @bind-Value="@student.Name" />
+        <InputText class="form-control" @bind-Value="@student.Name" disabled="@isLoading" />
         <ValidationMessage For="@(() => student.Name)" />
     </div>
     <div class="mb-3">
-        <label for="name" class="form-label">Mobile:</label>
-        <InputText class="form-control" @bind-Value="@student.Mobile" />
+        <label for="mobile" class="form-label">Mobile:</label>
+        <InputText class="form-control" @bind-Value="@student.Mobile" disabled="@isLoading" />
         <ValidationMessage For="@(() => student.Mobile)" />
     </div>
     <div class="mb-3">
-        <label class="form-label">Telephone:</label>
-        <InputText class="form-control" @bind-Value="@student.Telephone" />
+        <label for="telephone" class="form-label">Telephone:</label>
+        <InputText class="form-control" @bind-Value="@student.Telephone" disabled="@isLoading" />
         <ValidationMessage For="@(() => student.Telephone)" />
     </div>
     <div class="mb-3">
         <label for="email" class="form-label">Email:</label>
-        <InputText type="email" class="form-control" @bind-Value="@student.Email" />
+        <InputText type="email" class="form-control" @bind-Value="@student.Email" disabled="@isLoading" />
         <ValidationMessage For="@(() => student.Email)" />
     </div>
 
     <div class="mb-3">
-        <label class="form-label">Age:</label>
-        <InputNumber class="form-control" @bind-Value="@student.Age" />
+        <label for="age" class="form-label">Age:</label>
+        <InputNumber class="form-control" @bind-Value="@student.Age" disabled="@isLoading" />
         <ValidationMessage For="@(() => student.Age)" />
     </div>
 
     <div class="mb-3">
         <label for="message" class="form-label">Message:</label>
-        <InputText class="form-control" @bind-Value="@student.Message" />
+        <InputText class="form-control" @bind-Value="@student.Message" disabled="@isLoading" />
         <ValidationMessage For="@(() => student.Message)" />
     </div>
 
     <ValidationSummary />
 
-    <button type="submit" class="btn btn-primary">Submit</button>
+    <div class="mb-3">
+        <button type="submit" class="btn btn-primary" disabled="@isLoading">
+            @if (isLoading)
+            {
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                @(isEditing ? "Updating..." : "Creating...")
+            }
+            else
+            {
+                @(isEditing ? "Update Student" : "Add Student")
+            }
+        </button>
+
+        @if (isEditing)
+        {
+            <button type="button" class="btn btn-secondary ms-2" @onclick="ResetForm" disabled="@isLoading">
+                Cancel
+            </button>
+        }
+    </div>
 </EditForm>
 
-<h1>Registered Students</h1>
-<div class="container mt-5">
-    <h2>Bootstrap Table</h2>
-    <table class="table table-striped table-bordered">
-        <thead class="table-dark">
-            <tr>
-                <th scope="col">Name</th>
-                <th scope="col">Mobile</th>
-                <th scope="col">Telephone</th>
-                <th scope="col">Email</th>
-                <th scope="col">Age</th>
-                <th scope="col">Message</th>
-                <th scope="col">Operations</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (Student item in students)
+<div class="mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>Registered Students</h2>
+        <button class="btn btn-outline-primary" @onclick="LoadStudents" disabled="@isLoading">
+            @if (isLoading)
             {
-                <tr>
-                    <td scope="col">@item.Name</td>
-                    <td scope="col">@item.Mobile</td>
-                    <td scope="col">@item.Telephone</td>
-                    <td scope="col">@item.Email</td>
-                    <td scope="col">@item.Age</td>
-                    <td scope="col">@item.Message</td>
-                    <td scope="col"><a href="javascript:void(0)" onclick="@( ()=> EditStudent(item) )">Edit</a></td>
-                </tr>
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                <text>Loading...</text>
             }
-        </tbody>
-    </table>
+            else
+            {
+                <i class="bi bi-arrow-clockwise"></i> <text>Refresh</text>
+            }
+        </button>
+    </div>
+
+    @if (isLoading && !students.Any())
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading students...</p>
+        </div>
+    }
+    else if (!students.Any())
+    {
+        <div class="alert alert-info" role="alert">
+            No students found. Add your first student using the form above.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Mobile</th>
+                        <th scope="col">Telephone</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Age</th>
+                        <th scope="col">Message</th>
+                        <th scope="col">Operations</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (Student item in students)
+                    {
+                        <tr>
+                            <td>@item.Name</td>
+                            <td>@item.Mobile</td>
+                            <td>@item.Telephone</td>
+                            <td>@item.Email</td>
+                            <td>@item.Age</td>
+                            <td>@item.Message</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary" @onclick="() => EditStudent(item)" disabled="@isLoading">
+                                    Edit
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 </div>

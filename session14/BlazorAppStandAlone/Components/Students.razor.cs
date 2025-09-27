@@ -1,51 +1,117 @@
 namespace BlazorAppStandAlone.Components;
 using System.Text.Json;
+using System.Net.Http.Json;
+using Microsoft.AspNetCore.Components;
+
 public partial class Students
 {
-    private Student student = new();
-    List<Student> students = new List<Student>();
-    protected async override Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-        //TODO:: using HttpClient call https://students.innopack.app/api/students to fill students
-        if (firstRender && !students.Any())
-        {
-            student.Id = Guid.NewGuid();
-            student.Name = "Wael Shehab Eldin";
-            student.Mobile = "01207888335";
-            student.Telephone = "0403335102";
-            student.Email = "wael@innotech.com.eg";
-            student.Age = 44;
-            student.Message = "Just Testing......";
 
+    private Student student = new();
+    private List<Student> students = new List<Student>();
+    private bool isEditing = false;
+    private string? errorMessage;
+    private bool isLoading = false;
+    HttpClient client = new HttpClient();
+   protected override async Task OnInitializedAsync()
+    {
+        await LoadStudents();
+    }
+
+    private async Task LoadStudents()
+    {
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+            
+            List<Student>? response = await client.GetFromJsonAsync<List<Student>>(
+            "https://students.innopack.app/api/students");
+
+
+            if (response != null)
+            {
+                students = response;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error loading students: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
             StateHasChanged();
         }
     }
 
-    private void HandleValidSubmit()
+    private async Task HandleValidSubmit()
     {
-        string studentSerialized = JsonSerializer.Serialize(student);
-        Student? validStudent = JsonSerializer.Deserialize<Student>(studentSerialized);
-        if (validStudent is not null)
-            students.Add(validStudent);
-        //Search With name if exits get it by index and edit it in list if not add it to list
-        //TODO:: using HttpClient call https://students.innopack.app/api/students
+        try
+        {
+            isLoading = true;
+            errorMessage = null;
+
+            if (isEditing)
+            {
+                // Update existing student (PUT)
+                HttpResponseMessage response = await client.PutAsJsonAsync(
+                    "https://students.innopack.app/api/students", student);
+                if (response.IsSuccessStatusCode)
+                {
+                    // Update the student in the local list
+                    var index = students.FindIndex(s => s.Id == student.Id);
+                    if (index >= 0)
+                    {
+                        students[index] = JsonSerializer.Deserialize<Student>(JsonSerializer.Serialize(student))!;
+                    }
+                }
+                else
+                {
+                    errorMessage = $"Error updating student: {response.StatusCode}";
+                }
+            }
+            else
+            {
+
+                HttpResponseMessage response = await client.PostAsJsonAsync(
+                       "https://students.innopack.app/api/students", student);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Add the student to the local list
+                    students.Add(JsonSerializer.Deserialize<Student>(JsonSerializer.Serialize(student))!);
+                }
+                else
+                {
+                    errorMessage = $"Error creating student: {response.StatusCode}";
+                }
+            }
+
+            // Reset form
+            ResetForm();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error submitting form: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
     }
+
     private void EditStudent(Student toBeEditedStudent)
     {
-        student = toBeEditedStudent;
-
+        student = JsonSerializer.Deserialize<Student>(JsonSerializer.Serialize(toBeEditedStudent))!;
+        isEditing = true;
         StateHasChanged();
     }
 
-    public class ContactModel
+    private void ResetForm()
     {
-
-        public string? Name { get; set; }
-
-
-        public string? Email { get; set; }
-
-
+        student = new Student();
+        isEditing = false;
     }
+
 }
