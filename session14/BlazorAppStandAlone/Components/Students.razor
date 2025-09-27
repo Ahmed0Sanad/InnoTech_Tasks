@@ -5,7 +5,7 @@
 <h3>Students</h3>
 
 <EditForm Model="@student" OnValidSubmit="@HandleValidSubmit">
-    <DataAnnotationsValidator />
+    <FluentValidationValidator />
 
     <div class="mb-3">
         <label for="name" class="form-label">Name:</label>

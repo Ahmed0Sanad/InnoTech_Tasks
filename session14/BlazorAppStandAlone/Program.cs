@@ -1,4 +1,6 @@
 using BlazorAppStandAlone;
+using BlazorAppStandAlone.Validators;
+using FluentValidation;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 
@@ -7,5 +9,8 @@ builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+
+// Add FluentValidation services
+builder.Services.AddValidatorsFromAssemblyContaining<StudentValidator>();
 
 await builder.Build().RunAsync();
